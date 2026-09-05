@@ -1,0 +1,5 @@
+GitHub Repository URL:
+https://github.com/hharshithkumar91-crypto/mdds-location-intelligence-platform
+
+Branch: main
+Latest Commit: feat: complete Phase 1 architecture, 3NF schema, and verified ETL pipeline

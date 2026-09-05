@@ -1,0 +1,171 @@
+// Prisma Schema Definition for MDDS Administrative Hierarchy Platform
+// Compliant with 3NF Normalized Schema & PostgreSQL 16 (NeonDB)
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [pg_trgm, uuid_ossp(map: "uuid-ossp")]
+}
+
+// -------------------------------------------------------------
+// 1. Core Administrative Hierarchy (MDDS Standardized)
+// -------------------------------------------------------------
+
+model Country {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  isoCode   String   @unique @db.VarChar(3) // e.g. 'IND'
+  name      String   @db.VarChar(100)
+  phoneCode String?  @db.VarChar(10)
+  states    State[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("countries")
+}
+
+model State {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mddsCode        String            @unique @map("mdds_code") @db.VarChar(10) // Preserves leading zeros (e.g. '27')
+  name            String            @db.VarChar(120)
+  countryId       String            @map("country_id") @db.Uuid
+  country         Country           @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  districts       District[]
+  userStateAccess UserStateAccess[]
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@index([countryId])
+  @@index([name])
+  @@map("states")
+}
+
+model District {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mddsCode     String        @unique @map("mdds_code") @db.VarChar(10) // e.g. '497'
+  name         String        @db.VarChar(150)
+  stateId      String        @map("state_id") @db.Uuid
+  state        State         @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  subDistricts SubDistrict[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@index([stateId])
+  @@index([name])
+  @@map("districts")
+}
+
+model SubDistrict {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mddsCode   String    @unique @map("mdds_code") @db.VarChar(10) // e.g. '03950'
+  name       String    @db.VarChar(150)
+  districtId String    @map("district_id") @db.Uuid
+  district   District  @relation(fields: [districtId], references: [id], onDelete: Restrict)
+  villages   Village[]
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  @@index([districtId])
+  @@index([name])
+  @@map("sub_districts")
+}
+
+model Village {
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mddsCode      String      @unique @map("mdds_code") @db.VarChar(10) // e.g. '525002'
+  name          String      @db.VarChar(200)
+  subDistrictId String      @map("sub_district_id") @db.Uuid
+  subDistrict   SubDistrict @relation(fields: [subDistrictId], references: [id], onDelete: Restrict)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@index([subDistrictId])
+  @@index([subDistrictId, name])
+  @@index([name])
+  @@map("villages")
+}
+
+// -------------------------------------------------------------
+// 2. Identity, B2B Access Control & API Monetization
+// -------------------------------------------------------------
+
+enum UserPlan {
+  FREE
+  STARTER
+  GROWTH
+  ENTERPRISE
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+model User {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email           String            @unique @db.VarChar(255)
+  passwordHash    String            @map("password_hash") @db.VarChar(255)
+  organization    String            @db.VarChar(200)
+  planType        UserPlan          @default(FREE) @map("plan_type")
+  status          UserStatus        @default(ACTIVE)
+  apiKeys         ApiKey[]
+  userStateAccess UserStateAccess[]
+  apiLogs         ApiLog[]
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model ApiKey {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyPrefix String    @map("key_prefix") @db.VarChar(12) // e.g. "ba_live_"
+  keyHash   String    @unique @map("key_hash") @db.VarChar(128) // SHA-256 hash of API secret
+  name      String    @db.VarChar(100) // Friendly identifier (e.g. "Production Server")
+  isActive  Boolean   @default(true) @map("is_active")
+  expiresAt DateTime? @map("expires_at")
+  apiLogs   ApiLog[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model UserStateAccess {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stateId   String   @map("state_id") @db.Uuid
+  state     State    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  grantedAt DateTime @default(now()) @map("granted_at")
+
+  @@unique([userId, stateId])
+  @@map("user_state_access")
+}
+
+model ApiLog {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  apiKeyId       String?  @map("api_key_id") @db.Uuid
+  apiKey         ApiKey?  @relation(fields: [apiKeyId], references: [id], onDelete: SetNull)
+  userId         String?  @map("user_id") @db.Uuid
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  endpoint       String   @db.VarChar(255)
+  httpMethod     String   @map("http_method") @db.VarChar(10)
+  statusCode     Int      @map("status_code")
+  responseTimeMs Int      @map("response_time_ms")
+  ipAddress      String?  @map("ip_address") @db.VarChar(45)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc), userId])
+  @@index([apiKeyId])
+  @@map("api_logs")
+}

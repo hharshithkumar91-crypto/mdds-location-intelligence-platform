@@ -1,0 +1,36 @@
+======================================================================
+STARTING MDDS PIPELINE & RELATIONAL INTEGRITY VERIFICATION
+======================================================================
+
+[Step 1] Creating 3NF Relational Tables...
+  [OK] Tables initialized: countries, states, districts, sub_districts, villages
+  [OK] Root country registered: India (ISO: IND, ID: 2bfdd16d...)
+
+[Step 2] Ingesting test dataset: data\sample_mdds.csv...
+  [OK] Loaded 7 sample records successfully.
+  [OK] Ingestion complete: 7 villages processed.
+
+[Step 3] Running Automated Integrity Checks...
+  [PASS] Leading Zero Validation: SubDistrict 'Akkalkuwa' code preserved as '03950'
+  [PASS] Foreign Key Integrity: 0 orphaned village records
+
+[Step 4] Querying Resolved Hierarchical Lineage:
+  State          | District     | SubDist (Code)         | Village (Code)        
+  ----------------------------------------------------------------------------
+  Gujarat        | Surat        | Chorasi (03912)        | Magdalla (515001)
+  Gujarat        | Surat        | Chorasi (03912)        | Dumas (515002)
+  Maharashtra    | Nandurbar    | Akkalkuwa (03950)      | Manibeli (525002)
+  Maharashtra    | Nandurbar    | Akkalkuwa (03950)      | Dhankhedi (525003)
+  Maharashtra    | Nandurbar    | Akkalkuwa (03950)      | Chimalkhadi (525004)
+  Maharashtra    | Nandurbar    | Akkalkuwa (03950)      | Sinduri (525005)
+  Maharashtra    | Nandurbar    | Akkalkuwa (03950)      | Rojkund (525006)
+
+[Step 5] Aggregate Entity Verification Counts:
+  - Total States Ingested:        2
+  - Total Districts Ingested:     2
+  - Total Sub-Districts Ingested: 2
+  - Total Villages Ingested:      7
+
+======================================================================
+[SUCCESS] ALL INTEGRITY & HIERARCHY VERIFICATION CHECKS PASSED (100%)
+======================================================================

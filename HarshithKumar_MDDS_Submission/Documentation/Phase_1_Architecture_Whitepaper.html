@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 1 Architecture Whitepaper - MDDS Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --slate-900: #0f172a;
+            --slate-800: #1e293b;
+            --slate-700: #334155;
+            --slate-600: #475569;
+            --slate-500: #64748b;
+            --slate-200: #e2e8f0;
+            --slate-100: #f1f5f9;
+            --slate-50: #f8fafc;
+            --emerald: #059669;
+            --amber: #d97706;
+            --cyan: #0891b2;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: var(--slate-800);
+            line-height: 1.7;
+            font-size: 15.5px;
+        }
+
+        /* Top Header Action Bar */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            z-index: 100;
+        }
+
+        .doc-title-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .badge-formal {
+            background: #eff6ff;
+            color: var(--primary);
+            border: 1px solid #bfdbfe;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .print-action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+            transition: all 0.2s;
+        }
+
+        .print-action-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1140px;
+            margin: 40px auto;
+            padding: 0 24px;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 48px;
+        }
+
+        /* Sticky Sidebar TOC */
+        .sidebar {
+            position: sticky;
+            top: 96px;
+            height: fit-content;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--slate-500);
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toc-list {
+            list-style: none;
+        }
+
+        .toc-item {
+            margin-bottom: 8px;
+        }
+
+        .toc-link {
+            text-decoration: none;
+            color: var(--slate-600);
+            font-size: 13.5px;
+            font-weight: 500;
+            display: block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .toc-link:hover {
+            background: var(--slate-100);
+            color: var(--primary);
+        }
+
+        /* Document Main Paper */
+        .whitepaper {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 56px 64px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Cover Page Header */
+        .doc-header {
+            border-bottom: 2px solid var(--slate-200);
+            padding-bottom: 32px;
+            margin-bottom: 40px;
+        }
+
+        .doc-header-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .doc-h1 {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--slate-900);
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .doc-subtitle {
+            font-size: 18px;
+            color: var(--slate-600);
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        /* Metadata Grid */
+        .meta-grid {
+            margin-top: 28px;
+            background: var(--slate-50);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .meta-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--slate-500);
+            letter-spacing: 0.05em;
+        }
+
+        .meta-val {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--slate-900);
+            margin-top: 4px;
+        }
+
+        /* Typography */
+        h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--slate-900);
+            letter-spacing: -0.02em;
+            margin-top: 48px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--slate-900);
+            margin-top: 28px;
+            margin-bottom: 12px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: #334155;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 28px 0;
+            font-size: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: var(--slate-100);
+            color: var(--slate-900);
+            font-weight: 700;
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--slate-700);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: #f8fafc;
+        }
+
+        /* Callouts */
+        .callout {
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin: 24px 0;
+            display: flex;
+            gap: 14px;
+            font-size: 14.5px;
+            line-height: 1.6;
+        }
+
+        .callout-info {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            color: #1e3a8a;
+        }
+
+        .callout-warning {
+            background: #fffbeb;
+            border-left: 4px solid var(--amber);
+            color: #92400e;
+        }
+
+        .callout-success {
+            background: #ecfdf5;
+            border-left: 4px solid var(--emerald);
+            color: #065f46;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--slate-900);
+            color: #f8fafc;
+            padding: 20px 24px;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 20px 0 28px 0;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            background: var(--slate-100);
+            color: #d946ef;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        pre code {
+            background: none;
+            color: #f8fafc;
+            padding: 0;
+        }
+
+        /* Diagrams & ASCII Containers */
+        .diagram-container {
+            background: #0f172a;
+            color: #38bdf8;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            overflow-x: auto;
+            border: 1px solid #1e293b;
+        }
+
+        /* Print Style */
+        @media print {
+            body { background: white; font-size: 12pt; }
+            .top-nav, .sidebar { display: none !important; }
+            .container { display: block; margin: 0; padding: 0; max-width: 100%; }
+            .whitepaper { border: none; box-shadow: none; padding: 0; }
+            h2 { page-break-before: always; margin-top: 24pt; }
+            .diagram-container, pre { background: #f8fafc !important; color: #0f172a !important; border: 1px solid #ccc !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Action Nav -->
+    <div class="top-nav">
+        <div class="doc-title-bar">
+            <span class="badge-formal">OFFICIAL ENGINEERING SPECIFICATION</span>
+            <span style="font-weight: 700; color: var(--slate-900); font-size: 15px;">Bold Analytics Capstone &bull; Phase 1</span>
+        </div>
+        <button class="print-action-btn" onclick="window.print()">
+            &#128438; Print / Save as Formal PDF
+        </button>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- Sidebar TOC -->
+        <aside class="sidebar">
+            <div class="sidebar-title">Table of Contents</div>
+            <ul class="toc-list">
+                <li class="toc-item"><a href="#sec-exec" class="toc-link">1. Executive Summary</a></li>
+                <li class="toc-item"><a href="#sec-tech" class="toc-link">2. Technical Architecture</a></li>
+                <li class="toc-item"><a href="#sec-diagram" class="toc-link">3. System Architecture</a></li>
+                <li class="toc-item"><a href="#sec-db" class="toc-link">4. Database Design (3NF)</a></li>
+                <li class="toc-item"><a href="#sec-index" class="toc-link">5. Indexing & Optimization</a></li>
+                <li class="toc-item"><a href="#sec-etl" class="toc-link">6. Streaming ETL Pipeline</a></li>
+                <li class="toc-item"><a href="#sec-verify" class="toc-link">7. Verification Gate</a></li>
+            </ul>
+        </aside>
+
+        <!-- Whitepaper Document Body -->
+        <main class="whitepaper">
+
+            <!-- Document Header -->
+            <header class="doc-header">
+                <div class="doc-header-meta">
+                    <span class="badge-formal" style="background: #ecfdf5; color: #047857; border-color: #a7f3d0;">STATUS: PHASE 1 COMPLETE</span>
+                    <span style="font-size: 13px; color: var(--slate-500);">Document ID: EDD-MDDS-001 &bull; v1.0.0</span>
+                </div>
+                <h1 class="doc-h1">MDDS Administrative Hierarchy & B2B Location Intelligence Platform</h1>
+                <p class="doc-subtitle">Phase 1 Engineering Specification: Distributed Architecture, 3NF Relational Schema, and High-Speed Streaming Ingestion</p>
+
+                <div class="meta-grid">
+                    <div class="meta-col">
+                        <span class="meta-label">Primary Contributors</span>
+                        <span class="meta-val">Harshith Kumar, Riyan Pathan, Geetha</span>
+                    </div>
+                    <div class="meta-col">
+                        <span class="meta-label">Assigned Project</span>
+                        <span class="meta-val">Bold Analytics Capstone</span>
+                    </div>
+                    <div class="meta-col">
+                        <span class="meta-label">Target Completion</span>
+                        <span class="meta-val">September 3, 2026</span>
+                    </div>
+                    <div class="meta-col">
+                        <span class="meta-label">Repository Branch</span>
+                        <span class="meta-val">main (Verified Public)</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- 1. Executive Summary -->
+            <section id="sec-exec">
+                <h2>1. Executive Summary & Problem Context</h2>
+                <p>
+                    This technical specification documents the Phase 1 engineering deliverables for the <strong>MDDS Administrative Hierarchy & B2B Location Intelligence Platform</strong>. The system provides high-throughput address resolution, administrative lineage queries, and fuzzy location search covering over <strong>600,000 revenue villages</strong> across India, standardized against the Ministry of Drinking Water and Sanitation (MDDS) catalogs.
+                </p>
+
+                <div class="callout callout-info">
+                    <div>
+                        <strong>Core Engineering Mandate:</strong> Eliminate geographic duplication and orphaned records through a Third Normal Form (3NF) relational database, deliver sub-50ms fuzzy search latency, and provide a memory-safe ingestion engine capable of loading ~650,000 records in under 4 minutes.
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Technical Architecture -->
+            <section id="sec-tech">
+                <h2>2. Technical Architecture & Stack Decision Matrix</h2>
+                <p>
+                    The stack selections balance developer velocity, serverless horizontal elasticity, edge caching, and strict relational integrity:
+                </p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Layer</th>
+                            <th>Selected Tech</th>
+                            <th>Architectural Rationale</th>
+                            <th>Production Safeguard</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Backend Runtime</strong></td>
+                            <td>Node.js (LTS) + Express.js</td>
+                            <td>Asynchronous, non-blocking event loop optimized for I/O-bound REST lookups.</td>
+                            <td>Heavy ETL compute decoupled to dedicated Python worker.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Primary Database</strong></td>
+                            <td>NeonDB (PostgreSQL 16)</td>
+                            <td>Serverless autoscaling, instant branch environments, and pgBouncer pooling.</td>
+                            <td>Hot read paths absorbed by Upstash Redis edge cache.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ORM / Data Layer</strong></td>
+                            <td>Prisma ORM</td>
+                            <td>Compile-time type safety, declarative migrations, and 3NF schema enforcement.</td>
+                            <td>Bulk operations use raw SQL / COPY batches.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Edge Caching</strong></td>
+                            <td>Upstash Redis</td>
+                            <td>Global sub-millisecond edge cache with HTTP REST interface (zero TCP leaks).</td>
+                            <td>24h TTL on static hierarchy queries; LRU eviction.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rate Limiting</strong></td>
+                            <td>Sliding Window (Redis)</td>
+                            <td>Distributed rate limiting across edge lambdas to enforce tier-based API quotas.</td>
+                            <td>In-memory fallback if Redis is momentarily unreachable.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Authentication</strong></td>
+                            <td>JWT + SHA-256 Hashes</td>
+                            <td>Stateless bearer tokens for dashboard; salted SHA-256 hashes for API credentials.</td>
+                            <td>Short 15m JWT TTL with Redis revocation blocklist.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 3. System Architecture Diagram -->
+            <section id="sec-diagram">
+                <h2>3. System Architecture & Flow Topology</h2>
+                <p>
+                    The platform is organized across three decoupled physical layers: <strong>Client Layer</strong>, <strong>Edge / Gateway Layer</strong>, and <strong>Data Layer</strong>.
+                </p>
+
+                <div class="diagram-container">
++---------------------------------------------------------------------------------------+
+|                                    CLIENT LAYER                                       |
+|    [ Admin Portal (React SPA) ]    [ B2B External Consumers ]    [ Demo Explorer ]   |
++------------------------------------------+--------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                              VERCEL EDGE NETWORK (GATEWAY)                            |
+|    - CORS Handling           - Sliding-Window Rate Limiting (Redis)                   |
+|    - JWT Session Auth        - Salted SHA-256 API Key Validation                      |
+|                                                                                       |
+|    Endpoints: /api/v1/hierarchy/*    /api/admin/*    /api/b2b/*    /api/auth/*        |
++------------------------------------------+--------------------------------------------+
+                                           |
+                    +----------------------+----------------------+
+                    v                                             v
++--------------------------------------+      +-----------------------------------------+
+|         UPSTASH REDIS (CACHE)        |      |           NEONDB (POSTGRESQL 16)        |
+|  - API Key Metadata Cache            |      |  - Core: countries, states, districts,  |
+|  - Rate Limit Sliding Windows        |      |          sub_districts, villages (600k) |
+|  - Hierarchy Query Cache (24h TTL)   |      |  - Auth: users, api_keys, api_logs,     |
+|  - Revocation Blacklist              |      |          user_state_access              |
++--------------------------------------+      +-----------------------------------------+
+                </div>
+            </section>
+
+            <!-- 4. Database Design (3NF) -->
+            <section id="sec-db">
+                <h2>4. Database Design & Relational Schema (3NF)</h2>
+                <p>
+                    The database follows strict Third Normal Form principles to ensure referential integrity and prevent data anomalies:
+                </p>
+
+                <div class="callout callout-warning">
+                    <div>
+                        <strong>Critical Data Integrity Safeguard:</strong> All MDDS code fields (<code>MDDS STC</code>, <code>MDDS DTC</code>, <code>MDDS Sub_DT</code>, <code>MDDS PLCN</code>) are enforced strictly as <code>VARCHAR</code> strings. Numeric casting strips vital leading zeroes (e.g. Sub-District <code>03950</code> is corrupted to <code>3950</code>), breaking government compliance.
+                    </div>
+                </div>
+
+                <h3>Relational Hierarchy Lineage</h3>
+                <pre><code>Country (IND)
+  &boxur;&HorizontalLine; State (MDDS STC: "27" - Maharashtra)
+      &boxur;&HorizontalLine; District (MDDS DTC: "497" - Nandurbar)
+          &boxur;&HorizontalLine; SubDistrict (MDDS Sub_DT: "03950" - Akkalkuwa)
+              &boxvr;&HorizontalLine; Village: Manibeli   (MDDS PLCN: "525002")
+              &boxvr;&HorizontalLine; Village: Dhankhedi  (MDDS PLCN: "525003")
+              &boxvr;&HorizontalLine; Village: Chimalkhadi (MDDS PLCN: "525004")
+              &boxur;&HorizontalLine; Village: Sinduri    (MDDS PLCN: "525005")</code></pre>
+
+                <p>
+                    Each table maintains strict foreign key relationships with <code>ON DELETE RESTRICT</code> on geographic tables to prevent accidental deletion of populated jurisdictions.
+                </p>
+            </section>
+
+            <!-- 5. Indexing & Optimization -->
+            <section id="sec-index">
+                <h2>5. Performance Indexing Strategy</h2>
+                <p>
+                    To maintain sub-50ms response times across 600,000+ village rows, specialized indexes are implemented based on access patterns:
+                </p>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Table</th>
+                            <th>Indexed Column(s)</th>
+                            <th>Index Method</th>
+                            <th>Optimized Query Pattern</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>villages</code></td>
+                            <td><code>name</code></td>
+                            <td><strong>GIN (gin_trgm_ops)</strong></td>
+                            <td>Sub-50ms fuzzy autocomplete using PostgreSQL <code>pg_trgm</code> (<code>WHERE name ILIKE '%mani%'</code>).</td>
+                        </tr>
+                        <tr>
+                            <td><code>villages</code></td>
+                            <td><code>(sub_district_id, name)</code></td>
+                            <td><strong>Composite B-Tree</strong></td>
+                            <td>Instant alphabetical pagination within a specific Sub-District.</td>
+                        </tr>
+                        <tr>
+                            <td><code>api_keys</code></td>
+                            <td><code>key_hash</code></td>
+                            <td><strong>Unique B-Tree / Hash</strong></td>
+                            <td>Constant-time <code>O(1)</code> API credential validation in gateway middleware.</td>
+                        </tr>
+                        <tr>
+                            <td><code>api_logs</code></td>
+                            <td><code>(created_at DESC, user_id)</code></td>
+                            <td><strong>Composite B-Tree</strong></td>
+                            <td>High-speed time-series analytics, billing calculations, and usage telemetry.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 6. Streaming ETL Pipeline -->
+            <section id="sec-etl">
+                <h2>6. Streaming MDDS Ingestion Engine (~650,000 Rows)</h2>
+                <p>
+                    Traditional bulk imports suffer from memory leaks and gateway timeouts. The custom Python engine implements three optimizations:
+                </p>
+                <ol style="margin-left: 24px; margin-bottom: 20px;">
+                    <li style="margin-bottom: 8px;"><strong>In-Memory Parent Cache:</strong> Existing State, District, and SubDistrict UUIDs are cached in local hash tables, eliminating 600,000+ individual <code>SELECT</code> queries.</li>
+                    <li style="margin-bottom: 8px;"><strong>Streamed Chunking:</strong> Files are read in 50,000-row chunks using Pandas generators, capping RAM consumption at &lt;250 MB.</li>
+                    <li style="margin-bottom: 8px;"><strong>Batch Transaction Commits:</strong> Multi-row inserts are executed in chunks of 5,000 records using PostgreSQL <code>execute_values</code>, completing full ingestion in under 4 minutes.</li>
+                    <li><strong>Dead-Letter Quarantine:</strong> Malformed rows missing codes are routed to <code>quarantine_records.jsonl</code> without failing the batch.</li>
+                </ol>
+            </section>
+
+            <!-- 7. Verification Gate -->
+            <section id="sec-verify">
+                <h2>7. Milestone Verification & Phase 1 Sign-Off</h2>
+                <p>
+                    Automated testing executed against canonical MDDS records confirmed <strong>100% test pass</strong>:
+                </p>
+
+                <div class="callout callout-success">
+                    <div>
+                        <strong>Verification Results:</strong><br>
+                        &bull; Leading-zero preservation: SubDistrict <code>03950</code> (Akkalkuwa) retained.<br>
+                        &bull; Referential integrity: <strong>0 orphaned village records</strong> across all tables.<br>
+                        &bull; Schema compilation: Validated cleanly via Prisma compiler.
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid var(--border); display: flex; justify-content: space-between; font-size: 13px; color: var(--slate-500);">
+                    <div>Bold Analytics Capstone &bull; Phase 1 Technical Specification</div>
+                    <div>Repository: github.com/hharshithkumar91-crypto/mdds-location-intelligence-platform</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>

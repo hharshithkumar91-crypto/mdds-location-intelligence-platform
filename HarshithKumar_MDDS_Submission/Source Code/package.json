@@ -1,0 +1,39 @@
+{
+  "name": "mdds-administrative-platform",
+  "version": "1.0.0",
+  "description": "MDDS Administrative Hierarchy & B2B Location Intelligence Platform",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:studio": "prisma studio",
+    "etl:import": "python scripts/import_mdds.py"
+  },
+  "keywords": [
+    "mdds",
+    "india-location-api",
+    "hierarchy",
+    "neon-postgres",
+    "prisma",
+    "express"
+  ],
+  "author": "Bold Analytics Capstone Team (Harshith, Riyan, Geetha)",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "@upstash/redis": "^1.34.0",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.20.0",
+    "express-rate-limit": "^7.4.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "prisma": "^5.19.1"
+  }
+}

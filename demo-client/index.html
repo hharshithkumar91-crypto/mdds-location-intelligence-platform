@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B2B Address Verification Demo - VillageAPI Client</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --border: #cbd5e1;
+      --emerald: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #f8fafc;
+      color: var(--slate-800);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--slate-900);
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: var(--slate-600);
+      margin-bottom: 28px;
+    }
+
+    .config-strip {
+      background: var(--slate-100);
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--slate-600);
+      margin-bottom: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .config-strip code {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--slate-800);
+      margin-bottom: 6px;
+    }
+
+    .required::after {
+      content: " *";
+      color: #ef4444;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 14.5px;
+      font-family: inherit;
+      color: var(--slate-900);
+      transition: all 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    input[readonly] {
+      background: var(--slate-100);
+      color: var(--slate-600);
+      cursor: not-allowed;
+      border-color: var(--slate-200);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Autocomplete Dropdown */
+    .autocomplete-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .autocomplete-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 13.5px;
+      border-bottom: 1px solid var(--slate-100);
+      transition: background 0.15s;
+    }
+
+    .autocomplete-item:hover, .autocomplete-item.active {
+      background: #eff6ff;
+    }
+
+    .item-village {
+      font-weight: 700;
+      color: var(--slate-900);
+    }
+
+    .item-subtext {
+      font-size: 12px;
+      color: var(--slate-500);
+      margin-top: 2px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .status-toast {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 13.5px;
+      font-weight: 600;
+    }
+
+    .status-success {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <span class="badge">B2B Reference Implementation</span>
+    <h1>Enterprise Client Contact Form</h1>
+    <p class="subtitle">Demonstrating real-time address validation & auto-fill using VillageAPI.</p>
+
+    <div class="config-strip">
+      <div>API Endpoint: <code>/v1/autocomplete</code></div>
+      <div>API Key: <code>demo_public_key_for_presentations</code></div>
+    </div>
+
+    <form id="contactForm" onsubmit="handleSubmit(event)">
+      <!-- Name -->
+      <div class="form-group">
+        <label for="fullName" class="required">Full Name</label>
+        <input type="text" id="fullName" placeholder="e.g. Harshith Kumar" required>
+      </div>
+
+      <!-- Email & Phone -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="email" class="required">Work Email</label>
+          <input type="email" id="email" placeholder="name@company.com" required>
+        </div>
+        <div class="form-group">
+          <label for="phone" class="required">Phone Number</label>
+          <input type="tel" id="phone" placeholder="+91 98765 43210" required>
+        </div>
+      </div>
+
+      <!-- Village Autocomplete Field -->
+      <div class="form-group" style="position: relative;">
+        <label for="villageInput" class="required">Village / Locality (Type to Autocomplete)</label>
+        <input type="text" id="villageInput" placeholder="Start typing (e.g. Manibeli or Dhankhedi)..." autocomplete="off" required>
+        <div id="autocompleteList" class="autocomplete-results"></div>
+      </div>
+
+      <!-- Auto-Populated Hierarchy Fields -->
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="subDistrict">Sub-District / Taluka</label>
+          <input type="text" id="subDistrict" placeholder="Auto-populated" readonly>
+        </div>
+        <div class="form-group">
+          <label for="district">District</label>
+          <input type="text" id="district" placeholder="Auto-populated" readonly>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="state">State</label>
+          <input type="text" id="state" placeholder="Auto-populated" readonly>
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          <input type="text" id="country" value="India" readonly>
+        </div>
+      </div>
+
+      <!-- Message -->
+      <div class="form-group">
+        <label for="message">Business Inquiry Message</label>
+        <textarea id="message" rows="3" placeholder="Describe your address intelligence requirements..."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Verified Contact Request</button>
+    </form>
+
+    <div id="successMsg" class="status-toast status-success" style="display: none;">
+      ✓ Contact inquiry recorded with verified standardized address!
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:3000/v1' : '/v1';
+    const API_KEY = 'demo_public_key_for_presentations';
+
+    const villageInput = document.getElementById('villageInput');
+    const autocompleteList = document.getElementById('autocompleteList');
+    let debounceTimer;
+
+    villageInput.addEventListener('input', () => {
+      const query = villageInput.value.trim();
+      clearTimeout(debounceTimer);
+
+      if (query.length < 2) {
+        autocompleteList.style.display = 'none';
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        fetch(`${API_BASE}/autocomplete?q=${encodeURIComponent(query)}`, {
+          headers: { 'X-API-Key': API_KEY }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.data.length > 0) {
+            renderSuggestions(data.data);
+          } else {
+            autocompleteList.style.display = 'none';
+          }
+        })
+        .catch(err => {
+          console.error('Autocomplete fetch error:', err);
+          autocompleteList.style.display = 'none';
+        });
+      }, 200);
+    });
+
+    function renderSuggestions(suggestions) {
+      autocompleteList.innerHTML = '';
+      suggestions.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `
+          <div class="item-village">${item.label}</div>
+          <div class="item-subtext">${item.fullAddress}</div>
+        `;
+        div.addEventListener('click', () => {
+          selectVillage(item);
+        });
+        autocompleteList.appendChild(div);
+      });
+      autocompleteList.style.display = 'block';
+    }
+
+    function selectVillage(item) {
+      villageInput.value = item.label;
+      document.getElementById('subDistrict').value = item.hierarchy.subDistrict;
+      document.getElementById('district').value = item.hierarchy.district;
+      document.getElementById('state').value = item.hierarchy.state;
+      document.getElementById('country').value = item.hierarchy.country || 'India';
+      autocompleteList.style.display = 'none';
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#villageInput') && !e.target.closest('#autocompleteList')) {
+        autocompleteList.style.display = 'none';
+      }
+    });
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      const toast = document.getElementById('successMsg');
+      toast.style.display = 'block';
+      toast.innerText = `✓ Inquiry submitted for ${document.getElementById('fullName').value} at ${document.getElementById('villageInput').value}, ${document.getElementById('district').value}, ${document.getElementById('state').value}`;
+      setTimeout(() => { toast.style.display = 'none'; }, 6000);
+    }
+  </script>
+</body>
+</html>
